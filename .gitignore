@@ -1,5 +1,6 @@
 Archivo.xcodeproj/
 DerivedData/
 *.xcuserstate
-xcuserdata/
-
+userdata/
+build_cloud/
+*.ipa
