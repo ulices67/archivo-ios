@@ -23,11 +23,16 @@ struct RootView: View {
 struct MainTabView: View {
     var body: some View {
         TabView {
-            Tab("Recuerdos", systemImage: "archivebox") { MemoriesView() }
-            Tab("Explorar", systemImage: "safari") { ExploreView() }
-            Tab("Crear", systemImage: "plus") { CreateView() }
-            Tab("Biblioteca", systemImage: "books.vertical") { LibraryView() }
-            Tab("Perfil", systemImage: "person") { ProfileView() }
+            MemoriesView()
+                .tabItem { Label("Recuerdos", systemImage: "archivebox") }
+            ExploreView()
+                .tabItem { Label("Explorar", systemImage: "safari") }
+            CreateView()
+                .tabItem { Label("Crear", systemImage: "plus") }
+            LibraryView()
+                .tabItem { Label("Biblioteca", systemImage: "books.vertical") }
+            ProfileView()
+                .tabItem { Label("Perfil", systemImage: "person") }
         }
         .toolbarBackground(ArchivoTheme.surface, for: .tabBar)
     }
