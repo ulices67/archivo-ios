@@ -86,10 +86,16 @@ jobs:
           rm -rf Payload Archivo.ipa
           mkdir -p Payload
           cp -R derived_data_device/Build/Products/Release-iphoneos/Archivo.app Payload/
-          cp Archivo/Resources/Info.plist Payload/Archivo.app/Info.plist || true
-          plutil -replace UILaunchStoryboardName -string "LaunchScreen" Payload/Archivo.app/Info.plist || true
-          plutil -replace UIRequiresFullScreen -bool YES Payload/Archivo.app/Info.plist || true
-          zip -r Archivo.ipa Payload
+          
+          echo "=== Contenido de Payload/Archivo.app ==="
+          ls -la Payload/Archivo.app
+          echo "=== Info.plist compilado ==="
+          plutil -p Payload/Archivo.app/Info.plist || true
+
+          # Ad-hoc sign the app bundle so sideloading tools (Sideloadly, AltStore, TrollStore) accept it
+          codesign --force --deep --sign - Payload/Archivo.app || true
+
+          zip -qry Archivo.ipa Payload
           ls -lh Archivo.ipa
 
       # ----------------------------------------------------
