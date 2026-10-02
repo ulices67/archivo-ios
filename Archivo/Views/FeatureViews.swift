@@ -75,19 +75,20 @@ struct CreateView: View {
     @State private var kind = "Foto"
     @State private var caption = ""
     var body: some View {
+        let hasData = selectedData != nil
         NavigationStack {
             Form {
                 Section("Crear algo nuevo") {
                     Picker("Tipo", selection: $kind) { ForEach(["Foto", "Video", "Poema", "Canción", "Nota"], id: \.self) { Text($0) } }
                     PhotosPicker(selection: $selection, matching: .any(of: [.images, .videos])) {
-                        Label(selectedData == nil ? "Elegir foto o video" : "Archivo preparado", systemImage: "photo.on.rectangle")
+                        Label(hasData ? "Archivo preparado" : "Elegir foto o video", systemImage: "photo.on.rectangle")
                     }
                     TextField("Contexto", text: $caption, axis: .vertical)
                     Picker("Visibilidad", selection: .constant("private")) {
                         Text("Privado").tag("private"); Text("Seguidores").tag("followers"); Text("Público").tag("public")
                     }
                 }
-                Section { Button("Guardar en Archivo") {}.disabled(selectedData == nil && caption.isEmpty) }
+                Section { Button("Guardar en Archivo") {}.disabled(!hasData && caption.isEmpty) }
             }
             .navigationTitle("Crear")
             .onChange(of: selection) { _, item in Task { selectedData = try? await item?.loadTransferable(type: Data.self) } }
