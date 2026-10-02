@@ -75,7 +75,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath derived_data_device \
             MARKETING_VERSION="0.12.0" \
-            CURRENT_PROJECT_VERSION="25" \
+            CURRENT_PROJECT_VERSION="26" \
             CODE_SIGN_STYLE="Manual" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -91,7 +91,7 @@ jobs:
           
           # Forzar valores de versión exactos en el Info.plist del bundle
           plutil -replace CFBundleShortVersionString -string "0.12.0" Payload/Archivo.app/Info.plist || true
-          plutil -replace CFBundleVersion -string "25" Payload/Archivo.app/Info.plist || true
+          plutil -replace CFBundleVersion -string "26" Payload/Archivo.app/Info.plist || true
           
           echo "=== Contenido de Payload/Archivo.app ==="
           ls -la Payload/Archivo.app
@@ -118,7 +118,7 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath derived_data_sim \
             MARKETING_VERSION="0.12.0" \
-            CURRENT_PROJECT_VERSION="25" \
+            CURRENT_PROJECT_VERSION="26" \
             CODE_SIGN_STYLE="Manual" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
