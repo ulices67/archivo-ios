@@ -16,15 +16,15 @@ struct ArchivoWebView: UIViewRepresentable {
         configuration.allowsAirPlayForMediaPlayback = true
         configuration.allowsPictureInPictureMediaPlayback = true
 
-        // User Script: Enforce Native App Feel (No text selection markers, no image drag/callout popovers)
+        // User Script: Native App Behavior without breaking touch scroll gestures
         let nativeAppCSS = """
         var style = document.createElement('style');
         style.innerHTML = `
-            * {
-                -webkit-touch-callout: none !important;
-                -webkit-user-select: none !important;
-                user-select: none !important;
-                -webkit-tap-highlight-color: transparent !important;
+            body {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
             }
             input, textarea, [contenteditable="true"], .selectable-text {
                 -webkit-user-select: text !important;
@@ -36,9 +36,9 @@ struct ArchivoWebView: UIViewRepresentable {
                 -webkit-touch-callout: none !important;
                 user-select: none !important;
             }
-            html, body {
-                overscroll-behavior: none !important;
-                -webkit-overscroll-behavior: none !important;
+            .content, .scrollable, [data-scrollable="true"], .login-page, .login-shell {
+                -webkit-overflow-scrolling: touch !important;
+                touch-action: pan-y !important;
             }
         `;
         document.head.appendChild(style);
@@ -57,8 +57,9 @@ struct ArchivoWebView: UIViewRepresentable {
         // Essential: Allow full edge-to-edge content bleed behind dynamic island, notch, and home bar
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         
-        // Prevent entire app from bouncing or sliding when swiping on empty points
-        webView.scrollView.bounces = false
+        // Native iOS fluid touch momentum scrolling
+        webView.scrollView.isScrollEnabled = true
+        webView.scrollView.bounces = true
         webView.scrollView.alwaysBounceVertical = false
         webView.scrollView.alwaysBounceHorizontal = false
         webView.scrollView.showsVerticalScrollIndicator = false
