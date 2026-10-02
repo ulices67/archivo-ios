@@ -9,14 +9,21 @@
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$(MARKETING_VERSION)</string>
   <key>CFBundleVersion</key><string>$(CURRENT_PROJECT_VERSION)</string>
-  <key>UILaunchScreen</key><dict><key>UIColorName</key><string>LaunchBackground</string></dict>
+  <key>UILaunchStoryboardName</key><string>LaunchScreen</string>
+  <key>UIRequiresFullScreen</key><true/>
+  <key>UIStatusBarStyle</key><string>UIStatusBarStyleLightContent</string>
+  <key>UIViewControllerBasedStatusBarAppearance</key><false/>
+  <key>UILaunchScreen</key>
+  <dict>
+    <key>UIColorName</key><string>LaunchBackground</string>
+    <key>UIImageName</key><string>Logo</string>
+  </dict>
   <key>NSCameraUsageDescription</key><string>Archivo usa la cámara para añadir fotos y videos a tus recuerdos.</string>
   <key>NSPhotoLibraryUsageDescription</key><string>Archivo necesita acceso a las fotos que elijas compartir.</string>
   <key>NSPhotoLibraryAddUsageDescription</key><string>Archivo puede guardar contenido que tú solicites.</string>
   <key>NSLocationWhenInUseUsageDescription</key><string>Tu ubicación permite calcular rutas de mensajes caminando.</string>
   <key>NSMicrophoneUsageDescription</key><string>Archivo usa el micrófono cuando decides enviar audio.</string>
-  <key>UIBackgroundModes</key><array><string>remote-notification</string></array>
+  <key>UIBackgroundModes</key><array><string>remote-notification</string><string>audio</string></array>
   <key>UIApplicationSceneManifest</key><dict><key>UIApplicationSupportsMultipleScenes</key><false/></dict>
 </dict>
 </plist>
-

@@ -7,8 +7,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: "6.0"
-    MARKETING_VERSION: "0.10.0-beta.1"
-    CURRENT_PROJECT_VERSION: "19"
+    MARKETING_VERSION: "0.11.0"
+    CURRENT_PROJECT_VERSION: "20"
     DEVELOPMENT_TEAM: ""
 targets:
   Archivo:

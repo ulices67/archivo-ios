@@ -2,27 +2,41 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(SessionStore.self) private var session
+    @State private var isShowingSplash = true
+    @State private var webViewLoading = true
+    private let appURL = URL(string: "https://archivo.societext.workers.dev")!
 
     var body: some View {
         ZStack {
-            // Main content
-            Group {
-                if session.isAuthenticated {
-                    MainTabView()
-                } else {
-                    LoginView()
+            // Edge-to-edge original Archivo application
+            ArchivoWebView(url: appURL) { isLoading in
+                if !isLoading && isShowingSplash {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 600_000_000)
+                        withAnimation(.easeOut(duration: 0.4)) {
+                            isShowingSplash = false
+                        }
+                    }
                 }
             }
-            .tint(ArchivoTheme.accent)
-            .foregroundStyle(ArchivoTheme.ink)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(ArchivoTheme.background.ignoresSafeArea())
+            .ignoresSafeArea()
+            .background(Color(red: 0.05, green: 0.05, blue: 0.05).ignoresSafeArea())
 
-            // Official Splash Screen Overlay
-            if session.isRestoring {
+            // Official Geometric Splash Screen Overlay
+            if isShowingSplash {
                 SplashScreenView(stage: session.startupStage)
                     .transition(.opacity.animation(.easeInOut(duration: 0.4)))
                     .zIndex(100)
+            }
+        }
+        .task {
+            // Dismiss splash automatically as fallback after 2.5s
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            if isShowingSplash {
+                withAnimation(.easeOut(duration: 0.4)) {
+                    isShowingSplash = false
+                }
             }
         }
     }
@@ -67,7 +81,7 @@ struct SplashScreenView: View {
     }
 }
 
-// MARK: - Main Tab View
+// MARK: - Fallback / Native Tab View
 
 struct MainTabView: View {
     @State private var selectedTab = 0
