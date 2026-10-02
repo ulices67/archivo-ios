@@ -74,6 +74,8 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -derivedDataPath derived_data_device \
+            MARKETING_VERSION="0.12.0" \
+            CURRENT_PROJECT_VERSION="25" \
             CODE_SIGN_STYLE="Manual" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -86,6 +88,10 @@ jobs:
           rm -rf Payload Archivo.ipa
           mkdir -p Payload
           cp -R derived_data_device/Build/Products/Release-iphoneos/Archivo.app Payload/
+          
+          # Forzar valores de versión exactos en el Info.plist del bundle
+          plutil -replace CFBundleShortVersionString -string "0.12.0" Payload/Archivo.app/Info.plist || true
+          plutil -replace CFBundleVersion -string "25" Payload/Archivo.app/Info.plist || true
           
           echo "=== Contenido de Payload/Archivo.app ==="
           ls -la Payload/Archivo.app
@@ -111,6 +117,8 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath derived_data_sim \
+            MARKETING_VERSION="0.12.0" \
+            CURRENT_PROJECT_VERSION="25" \
             CODE_SIGN_STYLE="Manual" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
