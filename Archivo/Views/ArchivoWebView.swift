@@ -16,6 +16,36 @@ struct ArchivoWebView: UIViewRepresentable {
         configuration.allowsAirPlayForMediaPlayback = true
         configuration.allowsPictureInPictureMediaPlayback = true
 
+        // User Script: Enforce Native App Feel (No text selection markers, no image drag/callout popovers)
+        let nativeAppCSS = """
+        var style = document.createElement('style');
+        style.innerHTML = `
+            * {
+                -webkit-touch-callout: none !important;
+                -webkit-user-select: none !important;
+                user-select: none !important;
+                -webkit-tap-highlight-color: transparent !important;
+            }
+            input, textarea, [contenteditable="true"], .selectable-text {
+                -webkit-user-select: text !important;
+                user-select: text !important;
+                -webkit-touch-callout: default !important;
+            }
+            img, svg, picture {
+                -webkit-user-drag: none !important;
+                -webkit-touch-callout: none !important;
+                user-select: none !important;
+            }
+            html, body {
+                overscroll-behavior: none !important;
+                -webkit-overscroll-behavior: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+        """
+        let userScript = WKUserScript(source: nativeAppCSS, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+        configuration.userContentController.addUserScript(userScript)
+
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
@@ -26,18 +56,17 @@ struct ArchivoWebView: UIViewRepresentable {
 
         // Essential: Allow full edge-to-edge content bleed behind dynamic island, notch, and home bar
         webView.scrollView.contentInsetAdjustmentBehavior = .never
-        webView.scrollView.bounces = true
-        webView.scrollView.alwaysBounceVertical = true
+        
+        // Prevent entire app from bouncing or sliding when swiping on empty points
+        webView.scrollView.bounces = false
+        webView.scrollView.alwaysBounceVertical = false
+        webView.scrollView.alwaysBounceHorizontal = false
+        webView.scrollView.showsVerticalScrollIndicator = false
+        webView.scrollView.showsHorizontalScrollIndicator = false
 
-        // User Agent
-        let defaultUA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Archivo-iOS-Native/1.0"
+        // Standard Mobile Safari User Agent so Cloudflare WAF never flags requests
+        let defaultUA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 ArchivoNative"
         webView.customUserAgent = defaultUA
-
-        // Pull to refresh
-        let refreshControl = UIRefreshControl()
-        refreshControl.tintColor = UIColor(red: 0.83, green: 0.82, blue: 0.77, alpha: 1.0)
-        refreshControl.addTarget(context.coordinator, action: #selector(Coordinator.handleRefresh(_:)), for: .valueChanged)
-        webView.scrollView.refreshControl = refreshControl
 
         context.coordinator.webView = webView
 
@@ -63,30 +92,23 @@ struct ArchivoWebView: UIViewRepresentable {
             self.parent = parent
         }
 
-        @objc func handleRefresh(_ sender: UIRefreshControl) {
-            webView?.reload()
-        }
-
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
             parent.onLoadingChange?(true)
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            webView.scrollView.refreshControl?.endRefreshing()
             parent.onLoadingChange?(false)
         }
 
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-            webView.scrollView.refreshControl?.endRefreshing()
             parent.onLoadingChange?(false)
         }
 
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-            webView.scrollView.refreshControl?.endRefreshing()
             parent.onLoadingChange?(false)
         }
 
-        // Open target="_blank" links within the same webview or external browser
+        // Open target="_blank" links within the same webview
         func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
             if navigationAction.targetFrame == nil {
                 webView.load(navigationAction.request)
