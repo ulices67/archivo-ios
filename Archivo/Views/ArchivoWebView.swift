@@ -16,15 +16,20 @@ struct ArchivoWebView: UIViewRepresentable {
         configuration.allowsAirPlayForMediaPlayback = true
         configuration.allowsPictureInPictureMediaPlayback = true
 
-        // User Script: Native App Behavior without breaking touch scroll gestures
+        // Native App Behavior styling injection
         let nativeAppCSS = """
         var style = document.createElement('style');
         style.innerHTML = `
-            body {
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
                 -webkit-touch-callout: none;
                 -webkit-user-select: none;
                 user-select: none;
                 -webkit-tap-highlight-color: transparent;
+                background-color: #121312 !important;
             }
             input, textarea, [contenteditable="true"], .selectable-text {
                 -webkit-user-select: text !important;
@@ -36,9 +41,8 @@ struct ArchivoWebView: UIViewRepresentable {
                 -webkit-touch-callout: none !important;
                 user-select: none !important;
             }
-            .content, .scrollable, [data-scrollable="true"], .login-page, .login-shell {
+            .content, .scrollable, [data-scrollable="true"], .login-page, .login-shell, .app-shell, .phone-frame {
                 -webkit-overflow-scrolling: touch !important;
-                touch-action: pan-y !important;
             }
         `;
         document.head.appendChild(style);
@@ -51,28 +55,34 @@ struct ArchivoWebView: UIViewRepresentable {
         webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = true
         webView.isOpaque = false
-        webView.backgroundColor = UIColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1.0)
-        webView.scrollView.backgroundColor = UIColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1.0)
+        webView.backgroundColor = UIColor(red: 0.07, green: 0.075, blue: 0.07, alpha: 1.0)
+        webView.scrollView.backgroundColor = UIColor(red: 0.07, green: 0.075, blue: 0.07, alpha: 1.0)
 
-        // Essential: Allow full edge-to-edge content bleed behind dynamic island, notch, and home bar
+        // Allow edge-to-edge content bleed behind dynamic island and home bar
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         
-        // Native iOS fluid touch momentum scrolling
+        // Fluid touch momentum scrolling
         webView.scrollView.isScrollEnabled = true
         webView.scrollView.bounces = true
-        webView.scrollView.alwaysBounceVertical = false
-        webView.scrollView.alwaysBounceHorizontal = false
+        webView.scrollView.alwaysBounceVertical = true
         webView.scrollView.showsVerticalScrollIndicator = false
         webView.scrollView.showsHorizontalScrollIndicator = false
 
-        // Standard Mobile Safari User Agent so Cloudflare WAF never flags requests
+        // Pull to refresh support
+        let refreshControl = UIRefreshControl()
+        refreshControl.tintColor = .white
+        refreshControl.addTarget(context.coordinator, action: #selector(Coordinator.handleRefresh(_:)), for: .valueChanged)
+        webView.scrollView.refreshControl = refreshControl
+
+        // Standard Mobile Safari User Agent
         let defaultUA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 ArchivoNative"
         webView.customUserAgent = defaultUA
 
         context.coordinator.webView = webView
+        context.coordinator.refreshControl = refreshControl
 
         var request = URLRequest(url: url)
-        request.cachePolicy = .useProtocolCachePolicy
+        request.cachePolicy = .reloadRevalidatingCacheData
         request.timeoutInterval = 30
         webView.load(request)
 
@@ -88,9 +98,20 @@ struct ArchivoWebView: UIViewRepresentable {
     class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         var parent: ArchivoWebView
         weak var webView: WKWebView?
+        weak var refreshControl: UIRefreshControl?
 
         init(_ parent: ArchivoWebView) {
             self.parent = parent
+        }
+
+        @objc func handleRefresh(_ sender: UIRefreshControl) {
+            guard let webView = webView else {
+                sender.endRefreshing()
+                return
+            }
+            var request = URLRequest(url: parent.url)
+            request.cachePolicy = .reloadIgnoringLocalCacheData
+            webView.load(request)
         }
 
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
@@ -98,14 +119,17 @@ struct ArchivoWebView: UIViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            refreshControl?.endRefreshing()
             parent.onLoadingChange?(false)
         }
 
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            refreshControl?.endRefreshing()
             parent.onLoadingChange?(false)
         }
 
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            refreshControl?.endRefreshing()
             parent.onLoadingChange?(false)
         }
 
