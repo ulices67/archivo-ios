@@ -347,6 +347,7 @@ struct CreateView: View {
     private let kinds = ["Foto", "Video", "Poema", "Canción", "Nota"]
 
     var body: some View {
+        let hasData = selectedData != nil
         NavigationStack {
             Form {
                 Section("Tipo de contenido") {
@@ -363,14 +364,10 @@ struct CreateView: View {
                         selection: $selection,
                         matching: kind == "Video" ? .videos : .images
                     ) {
-                        HStack {
-                            Image(systemName: selectedData != nil ? "checkmark.circle.fill" : "photo.badge.plus")
-                                .foregroundStyle(selectedData != nil ? .green : ArchivoTheme.accent)
-                            Text(selectedData != nil ? "Archivo seleccionado" : "Elegir de la fototeca")
-                                .foregroundStyle(ArchivoTheme.ink)
-                            Spacer()
-                        }
-                        .frame(minHeight: ArchivoLayout.minTouchTarget)
+                        Label(
+                            hasData ? "Archivo seleccionado" : "Elegir de la fototeca",
+                            systemImage: hasData ? "checkmark.circle.fill" : "photo.badge.plus"
+                        )
                     }
 
                     if let selectedImage {
@@ -408,7 +405,7 @@ struct CreateView: View {
                         .frame(minHeight: ArchivoLayout.minTouchTarget)
                     }
                     .listRowBackground(ArchivoTheme.accent)
-                    .disabled(title.isEmpty && caption.isEmpty && selectedData == nil)
+                    .disabled(title.isEmpty && caption.isEmpty && !hasData)
                 }
             }
             .scrollContentBackground(.hidden)
