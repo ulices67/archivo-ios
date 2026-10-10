@@ -147,8 +147,8 @@ struct ArchivoWebView: UIViewRepresentable {
                 let lower = targetURL.lowercased()
                 if lower.contains("chatgpt") || lower.contains("signin-with-chatgpt") || lower.contains("signout-with-chatgpt") {
                     decisionHandler(.cancel)
-                    // Redirect directly to the clean traditional login page
-                    if let fallbackURL = URL(string: "https://archivo.societext.workers.dev/login") {
+                    // Redirect directly to the clean app root without ChatGPT SSO
+                    if let fallbackURL = URL(string: "https://archivo.societext.workers.dev") {
                         webView.load(URLRequest(url: fallbackURL))
                     }
                     return

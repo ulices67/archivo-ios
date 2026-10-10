@@ -4,7 +4,7 @@ struct RootView: View {
     @Environment(SessionStore.self) private var session
     @State private var isShowingSplash = true
     @State private var webViewLoading = true
-    private let appURL = URL(string: "https://archivo.societext.workers.dev/login")!
+    private let appURL = URL(string: "https://archivo.societext.workers.dev")!
 
     var body: some View {
         ZStack {
