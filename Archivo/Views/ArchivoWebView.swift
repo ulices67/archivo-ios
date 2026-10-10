@@ -16,7 +16,7 @@ struct ArchivoWebView: UIViewRepresentable {
         configuration.allowsAirPlayForMediaPlayback = true
         configuration.allowsPictureInPictureMediaPlayback = true
 
-        // Native App Behavior styling injection
+        // Native App Behavior styling injection & ChatGPT auth remover
         let nativeAppCSS = """
         var style = document.createElement('style');
         style.innerHTML = `
@@ -43,6 +43,14 @@ struct ArchivoWebView: UIViewRepresentable {
             }
             .content, .scrollable, [data-scrollable="true"], .login-page, .login-shell, .app-shell, .phone-frame {
                 -webkit-overflow-scrolling: touch !important;
+            }
+            /* Explicitly purge any ChatGPT OAuth redirects or external SSO buttons */
+            [data-sites-sign-in],
+            a[href*="signin-with-chatgpt"],
+            a[href*="chatgpt.site"],
+            .login-required,
+            .login-privacy {
+                display: none !important;
             }
         `;
         document.head.appendChild(style);
@@ -131,6 +139,22 @@ struct ArchivoWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
             refreshControl?.endRefreshing()
             parent.onLoadingChange?(false)
+        }
+
+        // Intercept and prevent navigation to ChatGPT OAuth / auth pages
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            if let targetURL = navigationAction.request.url?.absoluteString {
+                let lower = targetURL.lowercased()
+                if lower.contains("chatgpt") || lower.contains("signin-with-chatgpt") || lower.contains("signout-with-chatgpt") {
+                    decisionHandler(.cancel)
+                    // Redirect directly to the clean traditional login page
+                    if let fallbackURL = URL(string: "https://archivo.societext.workers.dev/login") {
+                        webView.load(URLRequest(url: fallbackURL))
+                    }
+                    return
+                }
+            }
+            decisionHandler(.allow)
         }
 
         // Open target="_blank" links within the same webview
